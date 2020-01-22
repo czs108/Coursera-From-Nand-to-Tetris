@@ -40,4 +40,58 @@ CHIP CPU {
 
     PARTS:
     // Put your code here:
+    // Check the type of the instruction
+    Not(in = instruction[15], out = isA);
+    Not(in = isA, out = isC);
+
+    // If the type of the instruction is C and the output includes A Register
+    // then load the ALU output into A Register
+    And(a = isC, b = instruction[5], out = loadALU);
+    Mux16(a = instruction, b = outALU, sel = loadALU, out = inA);
+
+    // If the type of the instruction is A or the output includes A Register
+    // then set the 'load' of A Register to 1
+    Or(a = isA, b = instruction[5], out = loadA);
+    ARegister(in = inA, load = loadA, out = outA, out[0..14] = addressM);
+
+    Mux16(a = outA, b = inM, sel = instruction[12], out = outAM);
+
+    // If the type of the instruction is C and it needs to write data to M
+    // then set 'writeM' to 1
+    And(a = isC, b = instruction[3], out = writeM);
+
+    // If the type of the instruction is C or the output includes D Register
+    // then load the ALU output into D Register
+    And(a = instruction[4], b = isC, out = loadD); 
+    DRegister(in = outALU, load = loadD, out = outD);
+
+    And(a = isC, b = instruction[6], out = no);
+    And(a = isC, b = instruction[7], out = f);
+    And(a = isC, b = instruction[8], out = ny);
+    And(a = isC, b = instruction[9], out = zy);
+    And(a = isC, b = instruction[10], out = nx);
+    And(a = isC, b = instruction[11], out = zx);
+
+    ALU(x = outD, y = outAM, zx = zx, nx = nx, zy = zy, ny = ny, f = f, no = no,
+        out = outALU, out = outM, zr = zr, ng = ng);
+    
+    // Check the jump type
+    And(a = isC, b = instruction[0], out = isGTjmp);
+    And(a = isC, b = instruction[1], out = isEQjmp);
+    And(a = isC, b = instruction[2], out = isLTjmp);
+
+    And(a = ng, b = isLTjmp, out = j1);
+    And(a = zr, b = isEQjmp, out = j2);
+
+    // Check if the output is greater than 0
+    Not(in = ng, out = notNG);
+    Not(in = zr, out = notZR);
+    And(a = notNG, b = notZR, out = GTZR);
+
+    And(a = GTZR, b = isGTjmp, out = j3);
+
+    Or(a = j1, b = j2, out = j12);
+    Or(a = j12, b = j3, out = j4);
+
+    PC(in = outA, load = j4, inc = true, reset = reset, out[0..14] = pc);
 }
