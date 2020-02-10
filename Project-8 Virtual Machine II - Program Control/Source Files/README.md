@@ -1,4 +1,4 @@
-# The Assembler
+# The VM Translator
 
 ## Getting Started
 
