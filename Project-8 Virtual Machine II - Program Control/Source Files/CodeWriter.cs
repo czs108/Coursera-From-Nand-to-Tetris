@@ -34,6 +34,18 @@ namespace Project8
             Dispose(false);
         }
 
+        public void SetFileName(string filename)
+        {
+            Debug.Assert(!String.IsNullOrWhiteSpace(filename));
+
+            code.SetFileNamePrefix(Path.GetFileNameWithoutExtension(filename));
+        }
+
+        public void WriteInit()
+        {
+            outputFile.WriteLine(code.Init());
+        }
+
         public void WriteArithmetic(string command)
         {
             Debug.Assert(!String.IsNullOrWhiteSpace(command));
@@ -63,6 +75,43 @@ namespace Project8
                     " [!] The command is not in the set.");
             }
         }
+
+        public void WriteGoto(string label)
+        {
+            Debug.Assert(!String.IsNullOrWhiteSpace(label));
+
+            outputFile.WriteLine(code.Goto(label));
+        }
+
+        public void WriteLabel(string label)
+        {
+            Debug.Assert(!String.IsNullOrWhiteSpace(label));
+
+            outputFile.WriteLine(code.Label(label));
+        }
+
+        public void WriteIf(string label)
+        {
+            Debug.Assert(!String.IsNullOrWhiteSpace(label));
+
+            outputFile.WriteLine(code.If(label));
+        }
+
+        public void WriteFunction(string function, int vars)
+        {
+            Debug.Assert(!String.IsNullOrWhiteSpace(function));
+
+            outputFile.WriteLine(code.Function(function, vars));
+        }
+
+        public void WriteCall(string function, int args)
+        {
+            Debug.Assert(!String.IsNullOrWhiteSpace(function));
+
+            outputFile.WriteLine(code.Call(function, args));
+        }
+
+        public void WriteReturn() => outputFile.WriteLine(code.Return());
 
         protected virtual void Dispose(bool disposing)
         {
