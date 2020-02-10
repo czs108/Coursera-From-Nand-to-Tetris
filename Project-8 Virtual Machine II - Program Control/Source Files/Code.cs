@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Text;
 using System.Collections.Generic;
 using System;
 
@@ -6,6 +7,8 @@ namespace Project8
 {
     public class Code
     {
+        private const int SP_BASE = 256;
+
         private const string SP = "SP";
 
         private const string TEMP_BASE = "R5";
@@ -22,6 +25,10 @@ namespace Project8
 
         private const string CMD = "${CMD}$";
 
+        private const string LBL = "${LBL}$";
+
+        private const string FUN = "${FUN}$";
+
         private static readonly Dictionary<string, string> segEnv =
             new Dictionary<string, string>()
         {
@@ -29,6 +36,11 @@ namespace Project8
             { "argument", "ARG" },
             { "this", "THIS" },
             { "that", "THAT" }
+        };
+
+        private static readonly string[] orderedStoreSegEnv = new string[]
+        {
+            "LCL", "ARG", "THIS", "THAT"
         };
 
         private static readonly Dictionary<string, string> arithCmds =
@@ -44,6 +56,17 @@ namespace Project8
             { "or", "M = M | D" },
             { "not", "M = !M" }
         };
+
+        /******************* init ********************/
+        private static readonly string INIT_TEMPLATE =
+            $"@{SP_BASE}" + Environment.NewLine +
+            "D = A" + Environment.NewLine +
+            $"@{SP}" + Environment.NewLine +
+            "M = D" + Environment.NewLine +
+            $"{CMD}" + Environment.NewLine +
+            $"(END{IDX})" + Environment.NewLine +
+            $"@END{IDX}" + Environment.NewLine +
+            "0; JMP" + Environment.NewLine;
 
         /******************** push ********************/
         private static readonly string PUSH_TEMPLATE_END =
@@ -153,15 +176,100 @@ namespace Project8
             $"@{SP}" + Environment.NewLine +
             "M = M + 1" + Environment.NewLine;
 
+        /******************* goto ********************/
+        private static readonly string GOTO_TEMPLATE =
+            $"@{LBL}" + Environment.NewLine +
+            "0; JMP" + Environment.NewLine;
+
+        /******************** if *********************/
+        private static readonly string IF_TEMPLATE =
+            $"@{SP}" + Environment.NewLine +
+            "AM = M - 1" + Environment.NewLine +
+            "D = M" + Environment.NewLine +
+            $"@{LBL}" + Environment.NewLine +
+            "D; JNE" + Environment.NewLine;
+
+        /******************* call ********************/
+        private static readonly string CALL_TEMPLATE =
+            // save segment pointers...
+            $"@{IDX}" + Environment.NewLine +
+            "D = A" + Environment.NewLine +
+            $"@{segEnv.Count + 1}" + Environment.NewLine +
+            "D = A + D" + Environment.NewLine +
+            $"@{SP}" + Environment.NewLine +
+            "D = M - D" + Environment.NewLine +
+            $"@{segEnv["argument"]}" + Environment.NewLine +
+            "M = D" + Environment.NewLine +
+            $"@{SP}" + Environment.NewLine +
+            "D = M" + Environment.NewLine +
+            $"@{segEnv["local"]}" + Environment.NewLine +
+            "M = D" + Environment.NewLine +
+            $"@{FUN}" + Environment.NewLine +
+            "0; JMP" + Environment.NewLine +
+            $"{LBL}" + Environment.NewLine;
+
+        /****************** return *******************/
+        private static readonly string RESTORE_SEG_TEMPLATE =
+            "@R13" + Environment.NewLine +
+            "D = M - 1" + Environment.NewLine +
+            "AM = D" + Environment.NewLine +
+            "D = M" + Environment.NewLine +
+            $"@{VAR}" + Environment.NewLine +
+            "M = D" + Environment.NewLine;
+
+        private static readonly string RET_TEMPLATE =
+            $"@{segEnv["local"]}" + Environment.NewLine +
+            "D = M" + Environment.NewLine +
+            "@R13" + Environment.NewLine +
+            "M = D" + Environment.NewLine +
+            $"@{segEnv.Count + 1}" + Environment.NewLine +
+            "A = D - A" + Environment.NewLine +
+            "D = M" + Environment.NewLine +
+            "@R14" + Environment.NewLine +
+            "M = D" + Environment.NewLine +
+            $"@{SP}" + Environment.NewLine +
+            "AM = M - 1" + Environment.NewLine +
+            "D = M" + Environment.NewLine +
+            $"@{segEnv["argument"]}" + Environment.NewLine +
+            "A = M" + Environment.NewLine +
+            "M = D" + Environment.NewLine +
+            $"@{segEnv["argument"]}" + Environment.NewLine +
+            "D = M + 1" + Environment.NewLine +
+            $"@{SP}" + Environment.NewLine +
+            "M = D" + Environment.NewLine +
+            // restore segment pointers...
+            $"{CMD}" + Environment.NewLine +
+            "@R14" + Environment.NewLine +
+            "A = M" + Environment.NewLine +
+            "0; JMP" + Environment.NewLine;
+
         private UniqueLabelIndex labelIdx = new UniqueLabelIndex();
 
-        private readonly string fileName = null;
+        private FuncRetLabelIndex RetAddrIdx = new FuncRetLabelIndex();
+
+        private string fileName = null;
 
         public Code(string fileName)
+        {
+            SetFileNamePrefix(fileName);
+        }
+
+        public void SetFileNamePrefix(string fileName)
         {
             Debug.Assert(!String.IsNullOrWhiteSpace(fileName));
 
             this.fileName = fileName;
+        }
+
+        public string Init()
+        {
+            var values = new Dictionary<string, string>()
+            {
+                { CMD, Call("Sys.init", 0) },
+                { IDX, labelIdx.Next().ToString() }
+            };
+
+            return Replace(INIT_TEMPLATE, values);
         }
 
         public string Arithmetic(string command)
@@ -313,6 +421,83 @@ namespace Project8
             }
         }
 
+        public string Goto(string label)
+        {
+            Debug.Assert(!String.IsNullOrWhiteSpace(label));
+
+            return Replace(GOTO_TEMPLATE,
+                new Dictionary<string, string>(){{ LBL, LabelName(label) }});
+        }
+
+        public string Label(string label)
+        {
+            Debug.Assert(!String.IsNullOrWhiteSpace(label));
+
+            return $"({LabelName(label)})";
+        }
+
+        public string If(string label)
+        {
+            Debug.Assert(!String.IsNullOrWhiteSpace(label));
+
+            return Replace(IF_TEMPLATE,
+                new Dictionary<string, string>(){{ LBL, LabelName(label) }});
+        }
+
+        public string Function(string function, int vars)
+        {
+            Debug.Assert(!String.IsNullOrWhiteSpace(function));
+
+            StringBuilder sb = new StringBuilder($"({function})" + Environment.NewLine);
+
+            for (int i = 0; i != vars; ++i)
+            {
+                sb.Append(PushConstant("0"));
+            }
+
+            return sb.ToString();
+        }
+
+        public string Call(string function, int args)
+        {
+            Debug.Assert(!String.IsNullOrWhiteSpace(function));
+
+            string retLabel = RetAddrName(function);
+
+            StringBuilder sb = new StringBuilder();
+            sb.Append(PushConstant(retLabel));
+
+            foreach (string seg in orderedStoreSegEnv)
+            {
+                sb.Append(PushVariable(seg));
+            }
+
+            var values = new Dictionary<string, string>()
+            {
+                { IDX, args.ToString() },
+                { FUN, function },
+                { LBL, $"({retLabel})" }
+            };
+
+            sb.Append(Replace(CALL_TEMPLATE, values));
+
+            return sb.ToString();
+        }
+
+        public string Return()
+        {
+            StringBuilder sb = new StringBuilder();
+
+            for (int i = orderedStoreSegEnv.Length - 1; i >= 0; --i)
+            {
+                sb.Append(Replace(RESTORE_SEG_TEMPLATE,
+                    new Dictionary<string, string>(){{ VAR, orderedStoreSegEnv[i] }}));
+            }
+
+            return Replace(RET_TEMPLATE,
+                new Dictionary<string, string>(){{ CMD, sb.ToString() }});
+        }
+
         private static string PushVariable(string name)
         {
             Debug.Assert(!String.IsNullOrWhiteSpace(name));
@@ -354,6 +539,21 @@ namespace Project8
         private string StaticVarName(int index)
         {
             return $"{fileName}.{index}";
+        }
+
+        private string LabelName(string label)
+        {
+            Debug.Assert(!String.IsNullOrWhiteSpace(label));
+
+            return $"{fileName}${label}";
+        }
+
+        private string RetAddrName(string function)
+        {
+            Debug.Assert(!String.IsNullOrWhiteSpace(function));
+
+            int idx = RetAddrIdx.Next(function);
+            return $"{function}$ret.{idx}";
         }
     }
 }
