@@ -54,8 +54,8 @@ To get a taste of low-level programming in machine language, and to get acquaint
     The supplied `Fill.tst` script, which comes with no compare file, is designed to do two things:
 
     - Load the `Fill.hack` program.
-- Remind you to select '*no animation*', and then test the program interactively by pressing and releasing some keyboard keys.
-  
+    - Remind you to select '*no animation*', and then test the program interactively by pressing and releasing some keyboard keys.
+    
     The supplied `FillAutomatic.tst` script, along with the supplied compare file `FillAutomatic.cmp`, are designed to test the `Fill` program automatically, as described by the test script documentation.
     
     For completeness of testing, it is recommended to test the `Fill` program both interactively and automatically.
