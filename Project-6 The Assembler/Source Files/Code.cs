@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Collections.Generic;
 
 namespace Project6
@@ -52,10 +53,7 @@ namespace Project6
             { "JMP", "111" }
         };
 
-        public static string Dest(string mnemonic)
-        {
-            return search(destMap, mnemonic, "000");
-        }
+        public static string Dest(string mnemonic) => search(destMap, mnemonic, "000");
 
         public static string Comp(string mnemonic)
         {
@@ -70,22 +68,19 @@ namespace Project6
             }
         }
 
-        public static string Jump(string mnemonic)
-        {
-            return search(jmpMap, mnemonic, "000");
-        }
+        public static string Jump(string mnemonic) => search(jmpMap, mnemonic, "000");
 
         private static string search(Dictionary<string, string> map,
             string mnemonic, string defBinary = null)
         {
-            string binary;
+            Debug.Assert(map != null);
+
             if (!String.IsNullOrWhiteSpace(mnemonic)
-                && map.TryGetValue(mnemonic, out binary))
+                && map.TryGetValue(mnemonic, out string binary))
             {
                 return binary;
             }
-
-            if (defBinary != null)
+            else if (defBinary != null)
             {
                 return defBinary;
             }

@@ -1,100 +1,115 @@
-﻿using System.Security.Permissions;
-using System.Runtime;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Text.RegularExpressions;
 using System.IO;
 using System;
 
 namespace Project6
 {
-    public static class Assembler
+    public class Assembler
     {
         private const int BITS = 16;
 
-        public static void Assemble(string inputfile, string outputfile)
+        private SymbolTable symTab = default;
+
+        public void Assemble(string inputFile, string outputFile)
         {
-            Debug.Assert(!String.IsNullOrWhiteSpace(inputfile));
-            Debug.Assert(!String.IsNullOrWhiteSpace(outputfile));
+            Debug.Assert(!String.IsNullOrWhiteSpace(inputFile));
+            Debug.Assert(!String.IsNullOrWhiteSpace(outputFile));
 
-            SymbolTable symTab = ScanLabel(inputfile);
-            ScanSymbol(inputfile, symTab);
+            symTab = new SymbolTable();
+            ScanLabel(inputFile);
+            ScanSymbol(inputFile);
 
-            Parser parser = new Parser(inputfile);
-            StreamWriter sw = new StreamWriter(outputfile);
-            while (parser.HasMoreCommands())
+            using (Parser parser = new Parser(inputFile))
             {
-                parser.Advance();
-                string binary = null;
-                if (parser.CommandType() == CmdType.A)
+                using (CodeWriter writer = new CodeWriter(outputFile, BITS))
                 {
-                    binary = FormatCommandA(parser, symTab);
-                }
-                else if (parser.CommandType() == CmdType.C)
-                {
-                    binary = FormatCommandC(parser);
-                }
-
-                if (binary != null)
-                {
-                    sw.WriteLine(binary);
-                }
-            }
-
-            sw.Close();
-        }
-
-        private static SymbolTable ScanLabel(string inputfile)
-        {
-            Debug.Assert(!String.IsNullOrWhiteSpace(inputfile));
-
-            int lineNumber = -1;
-            Parser parser = new Parser(inputfile);
-            SymbolTable symTab = new SymbolTable();
-            while (parser.HasMoreCommands())
-            {
-                parser.Advance();
-                if (parser.CommandType()  == CmdType.A
-                    || parser.CommandType()  == CmdType.C)
-                {
-                    ++lineNumber;
-                }
-
-                if (parser.CommandType() == CmdType.Label)
-                {
-                    string label = parser.Symbol();
-                    Debug.Assert(!symTab.Contains(label));
-                    symTab.AddEntry(label, lineNumber + 1);
-                }
-            }
-
-            return symTab;
-        }
-
-        private static void ScanSymbol(string inputfile, SymbolTable symTab)
-        {
-            Debug.Assert(!String.IsNullOrWhiteSpace(inputfile));
-            Debug.Assert(symTab != null);
-
-            int lineNumber = -1;
-            Memory memory = new Memory();
-            Parser parser = new Parser(inputfile);
-            while (parser.HasMoreCommands())
-            {
-                parser.Advance();
-                if (parser.CommandType() != CmdType.Whitespace)
-                {
-                    ++lineNumber;
-                }
-
-                if (parser.CommandType() == CmdType.A)
-                {
-                    string label = parser.Symbol();
-                    if (!IsNumber(label) && !symTab.Contains(label))
+                    while (parser.HasMoreCommands())
                     {
-                        symTab.AddEntry(label, memory.Allocate());
+                        parser.Advance();
+                        if (parser.CommandType() == CmdType.A)
+                        {
+                            int value = GetValue(parser.Symbol());
+                            writer.WriteCommandA(value);
+                        }
+                        else if (parser.CommandType() == CmdType.C)
+                        {
+                            writer.WriteCommandC(parser.Comp(), parser.Dest(), parser.Jump());
+                        }
                     }
                 }
             }
+        }
+
+        private void ScanLabel(string inputFile)
+        {
+            Debug.Assert(!String.IsNullOrWhiteSpace(inputFile));
+
+            int lineNumber = -1;
+            using (Parser parser = new Parser(inputFile))
+            {
+                while (parser.HasMoreCommands())
+                {
+                    parser.Advance();
+                    if (parser.CommandType()  == CmdType.A
+                        || parser.CommandType()  == CmdType.C)
+                    {
+                        ++lineNumber;
+                    }
+
+                    if (parser.CommandType() == CmdType.Label)
+                    {
+                        string label = parser.Symbol();
+                        Debug.Assert(!symTab.Contains(label));
+                        symTab.AddEntry(label, lineNumber + 1);
+                    }
+                }
+            }
+        }
+
+        private void ScanSymbol(string inputFile)
+        {
+            Debug.Assert(!String.IsNullOrWhiteSpace(inputFile));
+
+            int lineNumber = -1;
+            Memory memory = new Memory();
+            using (Parser parser = new Parser(inputFile))
+            {
+                while (parser.HasMoreCommands())
+                {
+                    parser.Advance();
+                    if (parser.CommandType() != CmdType.Whitespace)
+                    {
+                        ++lineNumber;
+                    }
+
+                    if (parser.CommandType() == CmdType.A)
+                    {
+                        string label = parser.Symbol();
+                        if (!IsNumber(label) && !symTab.Contains(label))
+                        {
+                            symTab.AddEntry(label, memory.Allocate());
+                        }
+                    }
+                }
+            }
+        }
+
+        private int GetValue(string symbol)
+        {
+            Debug.Assert(!String.IsNullOrWhiteSpace(symbol));
+
+            int value = default;
+            if (!IsNumber(symbol))
+            {
+                value = symTab.GetAddress(symbol);
+            }
+            else
+            {
+                value = Convert.ToInt32(symbol);
+            }
+
+            return value;
         }
 
         private static bool IsNumber(string label)
@@ -105,34 +120,12 @@ namespace Project6
             return rx.IsMatch(label);
         }
 
-        private static string FormatCommandA(Parser parser, SymbolTable symTab)
+        private static string GetOutputName(string inputName)
         {
-            Debug.Assert(symTab != null);
-            Debug.Assert(parser != null && parser.CommandType() == CmdType.A);
+            Debug.Assert(!String.IsNullOrWhiteSpace(inputName));
 
-            string sym = parser.Symbol();
-            int value = 0;
-            if (!IsNumber(sym))
-            {
-                value = symTab.GetAddress(sym);
-            }
-            else
-            {
-                value = Convert.ToInt32(sym);
-            }
-
-            return String.Format("0{0}", Convert.ToString(value, 2).PadLeft(BITS - 1, '0'));
-        }
-
-        private static string FormatCommandC(Parser parser)
-        {
-            Debug.Assert(parser != null && parser.CommandType() == CmdType.C);
-
-            string comp = Code.Comp(parser.Comp());
-            string dest = Code.Dest(parser.Dest());
-            string jump = Code.Jump(parser.Jump());
-
-            return String.Format("111{0}{1}{2}", comp, dest, jump);
+            return Path.Combine(Path.GetDirectoryName(inputName),
+                $"{Path.GetFileNameWithoutExtension(inputName)}.hack");
         }
 
         public static void Main(string[] args)
@@ -146,9 +139,8 @@ namespace Project6
             try
             {
                 string input = args[0];
-                string output = String.Format(@"{0}\{1}{2}", Path.GetDirectoryName(input),
-                    Path.GetFileNameWithoutExtension(input), ".hack");
-                Assembler.Assemble(input, output);
+                string output = GetOutputName(input);
+                new Assembler().Assemble(input, output);
                 Console.WriteLine(" [*] The translation has finished.");
             }
             catch (Exception e)

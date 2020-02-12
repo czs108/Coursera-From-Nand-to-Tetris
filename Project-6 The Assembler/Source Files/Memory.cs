@@ -1,5 +1,3 @@
-using System;
-
 namespace Project6
 {
     public class Memory
@@ -8,9 +6,6 @@ namespace Project6
 
         private int space = BASE;
 
-        public int Allocate()
-        {
-            return space++;
-        }
+        public int Allocate() => space++;
     }
 }
