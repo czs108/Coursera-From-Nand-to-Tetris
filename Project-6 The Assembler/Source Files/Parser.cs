@@ -4,21 +4,35 @@ using System;
 
 namespace Project6
 {
-    public class Parser
+    public class Parser : IDisposable
     {
-        private StreamReader inputFile;
+        private StreamReader inputFile = default;
 
-        private string currentLine = "";
+        private string currentLine = default;
 
         public Parser(string filename)
         {
+            Debug.Assert(!String.IsNullOrWhiteSpace(filename));
+
             inputFile = new StreamReader(filename);
         }
 
-        public bool HasMoreCommands()
+        public void Dispose()
         {
-            return inputFile.Peek() > -1;
+            Dispose(true);
+            GC.SuppressFinalize(this);
         }
+
+        // NOTE: Leave out the finalizer altogether if this class doesn't
+        // own unmanaged resources itself, but leave the other methods
+        // exactly as they are.
+        ~Parser()
+        {
+            // Finalizer calls Dispose(false)
+            Dispose(false);
+        }
+
+        public bool HasMoreCommands() => inputFile.Peek() > -1;
 
         public void Advance()
         {
@@ -28,7 +42,7 @@ namespace Project6
             }
             else
             {
-                currentLine = "";
+                currentLine = default;
             }
         }
 
@@ -81,7 +95,7 @@ namespace Project6
             }
             else
             {
-                return "";
+                return default;
             }
         }
 
@@ -115,7 +129,17 @@ namespace Project6
             }
             else
             {
-                return "";
+                return default;
+            }
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                // Free managed resources
+                inputFile?.Close();
+                inputFile = null;
             }
         }
 
@@ -123,11 +147,11 @@ namespace Project6
         {
             if (String.IsNullOrWhiteSpace(line))
             {
-                return "";
+                return default;
             }
 
             // Remove the whitespace
-            line = line.Replace(" ", "");
+            line = line.Replace(" ", String.Empty);
 
             // Remove the comment
             int commentIdx = line.IndexOf('/');

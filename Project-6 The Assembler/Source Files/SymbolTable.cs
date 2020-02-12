@@ -1,5 +1,6 @@
-using System;
+using System.Diagnostics;
 using System.Collections.Generic;
+using System;
 
 namespace Project6
 {
@@ -34,18 +35,23 @@ namespace Project6
 
         public void AddEntry(string symbol, int address)
         {
+            Debug.Assert(!String.IsNullOrWhiteSpace(symbol));
+
             symMap.Add(symbol, address);
         }
 
         public bool Contains(string symbol)
         {
+            Debug.Assert(!String.IsNullOrWhiteSpace(symbol));
+
             return symMap.ContainsKey(symbol);
         }
 
         public int GetAddress(string symbol)
         {
-            int address = 0;
-            if (symMap.TryGetValue(symbol, out address))
+            Debug.Assert(!String.IsNullOrWhiteSpace(symbol));
+
+            if (symMap.TryGetValue(symbol, out int address))
             {
                 return address;
             }
