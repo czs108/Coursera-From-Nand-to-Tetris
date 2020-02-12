@@ -28,4 +28,4 @@ For example:
 Assembler Add.asm
 ```
 
-It will generate `Add.hack` file.
+It will generate the `Add.hack` file.
