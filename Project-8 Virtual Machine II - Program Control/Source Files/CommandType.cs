@@ -1,6 +1,6 @@
 namespace Project8
 {
-    public enum CmdType
+    public enum CommandType
     {
         Arithmetic,
         Push,
@@ -10,7 +10,6 @@ namespace Project8
         If,
         Function,
         Return,
-        Call,
-        Whitespace
+        Call
     }
 }

@@ -50,49 +50,49 @@ namespace Project8
                 while (parser.HasMoreCommands())
                 {
                     parser.Advance();
-                    switch (parser.CommandType())
+                    switch (parser.TypeOfCommand())
                     {
-                        case CmdType.Arithmetic:
+                        case CommandType.Arithmetic:
                         {
                             writer.WriteArithmetic(parser.Arg1());
                             break;
                         }
-                        case CmdType.Push:
+                        case CommandType.Push:
                         {
                             writer.WritePushPop("push", parser.Arg1(), parser.Arg2());
                             break;
                         }
-                        case CmdType.Pop:
+                        case CommandType.Pop:
                         {
                             writer.WritePushPop("pop", parser.Arg1(), parser.Arg2());
                             break;
                         }
-                        case CmdType.Label:
+                        case CommandType.Label:
                         {
                             writer.WriteLabel(parser.Arg1());
                             break;
                         }
-                        case CmdType.Goto:
+                        case CommandType.Goto:
                         {
                             writer.WriteGoto(parser.Arg1());
                             break;
                         }
-                        case CmdType.If:
+                        case CommandType.If:
                         {
                             writer.WriteIf(parser.Arg1());
                             break;
                         }
-                        case CmdType.Function:
+                        case CommandType.Function:
                         {
                             writer.WriteFunction(parser.Arg1(), parser.Arg2());
                             break;
                         }
-                        case CmdType.Call:
+                        case CommandType.Call:
                         {
                             writer.WriteCall(parser.Arg1(), parser.Arg2());
                             break;
                         }
-                        case CmdType.Return:
+                        case CommandType.Return:
                         {
                             writer.WriteReturn();
                             break;

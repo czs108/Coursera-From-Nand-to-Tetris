@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.IO;
 using System.Diagnostics;
 using System;
@@ -71,8 +70,7 @@ namespace Project8
             }
             else
             {
-                throw new KeyNotFoundException(
-                    " [!] The command is not in the set.");
+                Debug.Assert(false, " [!] The command is invalid.");
             }
         }
 
