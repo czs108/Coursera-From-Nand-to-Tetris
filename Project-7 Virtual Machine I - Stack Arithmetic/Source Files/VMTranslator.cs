@@ -27,19 +27,19 @@ namespace Project7
                 while (parser.HasMoreCommands())
                 {
                     parser.Advance();
-                    switch (parser.CommandType())
+                    switch (parser.TypeOfCommand())
                     {
-                        case CmdType.Arithmetic:
+                        case CommandType.Arithmetic:
                         {
                             writer.WriteArithmetic(parser.Arg1());
                             break;
                         }
-                        case CmdType.Push:
+                        case CommandType.Push:
                         {
                             writer.WritePushPop("push", parser.Arg1(), parser.Arg2());
                             break;
                         }
-                        case CmdType.Pop:
+                        case CommandType.Pop:
                         {
                             writer.WritePushPop("pop", parser.Arg1(), parser.Arg2());
                             break;

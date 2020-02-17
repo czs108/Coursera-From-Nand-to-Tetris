@@ -275,12 +275,7 @@ namespace Project8
         public string Arithmetic(string command)
         {
             Debug.Assert(!String.IsNullOrWhiteSpace(command));
-
-            if (!arithCmds.ContainsKey(command))
-            {
-                throw new KeyNotFoundException(
-                    " [!] The command is not in the set.");
-            }
+            Debug.Assert(arithCmds.ContainsKey(command));
 
             var values = new Dictionary<string, string>()
             {
@@ -347,8 +342,8 @@ namespace Project8
                     }
                     else
                     {
-                        throw new KeyNotFoundException(
-                            " [!] The index is not in the set.");
+                        throw new ArgumentException(
+                            " [!] The index is invalid.");
                     }
                 }
                 default:
@@ -398,8 +393,8 @@ namespace Project8
                     }
                     else
                     {
-                        throw new KeyNotFoundException(
-                            " [!] The index is not in the set.");
+                        throw new ArgumentException(
+                            " [!] The index is invalid.");
                     }
                 }
                 default:

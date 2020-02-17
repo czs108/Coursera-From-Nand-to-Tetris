@@ -27,12 +27,12 @@ namespace Project6
                     while (parser.HasMoreCommands())
                     {
                         parser.Advance();
-                        if (parser.CommandType() == CmdType.A)
+                        if (parser.TypeOfCommand() == CommandType.A)
                         {
                             int value = GetValue(parser.Symbol());
                             writer.WriteCommandA(value);
                         }
-                        else if (parser.CommandType() == CmdType.C)
+                        else if (parser.TypeOfCommand() == CommandType.C)
                         {
                             writer.WriteCommandC(parser.Comp(), parser.Dest(), parser.Jump());
                         }
@@ -51,13 +51,13 @@ namespace Project6
                 while (parser.HasMoreCommands())
                 {
                     parser.Advance();
-                    if (parser.CommandType()  == CmdType.A
-                        || parser.CommandType()  == CmdType.C)
+                    if (parser.TypeOfCommand()  == CommandType.A
+                        || parser.TypeOfCommand()  == CommandType.C)
                     {
                         ++lineNumber;
                     }
 
-                    if (parser.CommandType() == CmdType.Label)
+                    if (parser.TypeOfCommand() == CommandType.Label)
                     {
                         string label = parser.Symbol();
                         Debug.Assert(!symTab.Contains(label));
@@ -78,12 +78,9 @@ namespace Project6
                 while (parser.HasMoreCommands())
                 {
                     parser.Advance();
-                    if (parser.CommandType() != CmdType.Whitespace)
-                    {
-                        ++lineNumber;
-                    }
+                    ++lineNumber;
 
-                    if (parser.CommandType() == CmdType.A)
+                    if (parser.TypeOfCommand() == CommandType.A)
                     {
                         string label = parser.Symbol();
                         if (!IsNumber(label) && !symTab.Contains(label))

@@ -1,3 +1,4 @@
+using System.Text;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -16,11 +17,14 @@ namespace Project7
 
         private string currentLine = null;
 
+        private string nextLine = null;
+
         public Parser(string filename)
         {
             Debug.Assert(!String.IsNullOrWhiteSpace(filename));
 
             inputFile = new StreamReader(filename);
+            nextLine = ReadLine(inputFile);
         }
 
         public void Dispose()
@@ -38,83 +42,75 @@ namespace Project7
             Dispose(false);
         }
 
-        public bool HasMoreCommands() => inputFile.Peek() > -1;
+        public bool HasMoreCommands() => !String.IsNullOrEmpty(nextLine);
 
         public void Advance()
         {
-            if (HasMoreCommands())
-            {
-                currentLine = RemoveWhitespace(inputFile.ReadLine());
-            }
-            else
-            {
-                currentLine = null;
-            }
+            Debug.Assert(HasMoreCommands());
+
+            currentLine = nextLine;
+            nextLine = ReadLine(inputFile);
         }
 
-        public CmdType CommandType()
+        public CommandType TypeOfCommand()
         {
-            if (String.IsNullOrWhiteSpace(currentLine))
-            {
-                return CmdType.Whitespace;
-            }
+            Debug.Assert(!String.IsNullOrWhiteSpace(currentLine));
 
             string[] fields = currentLine.Split(' ');
             string cmd = fields[0];
             if (arithmeticCmds.Contains(cmd))
             {
-                return CmdType.Arithmetic;
+                return CommandType.Arithmetic;
             }
 
             switch (cmd)
             {
                 case "push":
                 {
-                    return CmdType.Push;
+                    return CommandType.Push;
                 }
                 case "pop":
                 {
-                    return CmdType.Pop;
+                    return CommandType.Pop;
                 }
                 case "label":
                 {
-                    return CmdType.Label;
+                    return CommandType.Label;
                 }
                 case "goto":
                 {
-                    return CmdType.Goto;
+                    return CommandType.Goto;
                 }
                 case "if-goto":
                 {
-                    return CmdType.If;
+                    return CommandType.If;
                 }
                 case "function":
                 {
-                    return CmdType.Function;
+                    return CommandType.Function;
                 }
                 case "call":
                 {
-                    return CmdType.Call;
+                    return CommandType.Call;
                 }
                 case "return":
                 {
-                    return CmdType.Return;
+                    return CommandType.Return;
                 }
                 default:
                 {
-                    throw new KeyNotFoundException(
-                        " [!] The command is not in the set.");
+                    throw new FormatException(
+                        " [!] The command is invalid.");
                 }
             }
         }
 
         public string Arg1()
         {
-            Debug.Assert(CommandType() != CmdType.Return
-                && CommandType() != CmdType.Whitespace);
+            Debug.Assert(TypeOfCommand() != CommandType.Return);
 
             string[] fields = currentLine.Split(' ');
-            if (CommandType() == CmdType.Arithmetic)
+            if (TypeOfCommand() == CommandType.Arithmetic)
             {
                 return fields[0];
             }
@@ -126,10 +122,10 @@ namespace Project7
 
         public int Arg2()
         {
-            Debug.Assert(CommandType() == CmdType.Push
-                || CommandType() == CmdType.Pop
-                || CommandType() == CmdType.Function
-                || CommandType() == CmdType.Call);
+            Debug.Assert(TypeOfCommand() == CommandType.Push
+                || TypeOfCommand() == CommandType.Pop
+                || TypeOfCommand() == CommandType.Function
+                || TypeOfCommand() == CommandType.Call);
 
             string[] fields = currentLine.Split(' ');
             return Convert.ToInt32(fields[2]);
@@ -145,11 +141,24 @@ namespace Project7
             }
         }
 
-        private static string RemoveWhitespace(string line)
+        private static string ReadLine(StreamReader file)
+        {
+            Debug.Assert(file != null);
+
+            string line = RemoveUnusefulContent(file.ReadLine());
+            while (String.IsNullOrEmpty(line) && file.Peek() > -1)
+            {
+                line = RemoveUnusefulContent(file.ReadLine());
+            }
+
+            return line;
+        }
+
+        private static string RemoveUnusefulContent(string line)
         {
             if (String.IsNullOrWhiteSpace(line))
             {
-                return null;
+                return String.Empty;
             }
 
             // Remove the whitespace
