@@ -10,11 +10,14 @@ namespace Project6
 
         private string currentLine = default;
 
+        private string nextLine = default;
+
         public Parser(string filename)
         {
             Debug.Assert(!String.IsNullOrWhiteSpace(filename));
 
             inputFile = new StreamReader(filename);
+            nextLine = ReadLine(inputFile);
         }
 
         public void Dispose()
@@ -32,47 +35,40 @@ namespace Project6
             Dispose(false);
         }
 
-        public bool HasMoreCommands() => inputFile.Peek() > -1;
+        public bool HasMoreCommands() => !String.IsNullOrEmpty(nextLine);
 
         public void Advance()
         {
-            if (HasMoreCommands())
-            {
-                currentLine = RemoveWhitespace(inputFile.ReadLine());
-            }
-            else
-            {
-                currentLine = default;
-            }
+            Debug.Assert(HasMoreCommands());
+
+            currentLine = nextLine;
+            nextLine = ReadLine(inputFile);
         }
 
-        public CmdType CommandType()
+        public CommandType TypeOfCommand()
         {
-            if (String.IsNullOrWhiteSpace(currentLine))
-            {
-                return CmdType.Whitespace;
-            }
+            Debug.Assert(!String.IsNullOrWhiteSpace(currentLine));
 
             if (currentLine.IndexOf('@') > -1)
             {
-                return CmdType.A;
+                return CommandType.A;
             }
 
             if (currentLine.IndexOf('(') > -1
                 && currentLine.IndexOf(')') > -1)
             {
-                return CmdType.Label;
+                return CommandType.Label;
             }
 
-            return CmdType.C;
+            return CommandType.C;
         }
 
         public string Symbol()
         {
-            Debug.Assert(CommandType() == CmdType.A
-                || CommandType() == CmdType.Label);
+            Debug.Assert(TypeOfCommand() == CommandType.A
+                || TypeOfCommand() == CommandType.Label);
 
-            if (CommandType() == CmdType.A)
+            if (TypeOfCommand() == CommandType.A)
             {
                 return currentLine.Substring(currentLine.IndexOf('@') + 1);
             }
@@ -86,7 +82,7 @@ namespace Project6
 
         public string Dest()
         {
-            Debug.Assert(CommandType() == CmdType.C);
+            Debug.Assert(TypeOfCommand() == CommandType.C);
 
             int right = currentLine.IndexOf('=');
             if (right > -1)
@@ -101,7 +97,7 @@ namespace Project6
 
         public string Comp()
         {
-            Debug.Assert(CommandType() == CmdType.C);
+            Debug.Assert(TypeOfCommand() == CommandType.C);
 
             int left = currentLine.IndexOf('=');
             if (left <= -1)
@@ -120,7 +116,7 @@ namespace Project6
 
         public string Jump()
         {
-            Debug.Assert(CommandType() == CmdType.C);
+            Debug.Assert(TypeOfCommand() == CommandType.C);
 
             int left = currentLine.IndexOf(';');
             if (left > -1)
@@ -143,7 +139,20 @@ namespace Project6
             }
         }
 
-        private static string RemoveWhitespace(string line)
+        private static string ReadLine(StreamReader file)
+        {
+            Debug.Assert(file != null);
+
+            string line = RemoveUnusefulContent(file.ReadLine());
+            while (String.IsNullOrEmpty(line) && file.Peek() > -1)
+            {
+                line = RemoveUnusefulContent(file.ReadLine());
+            }
+
+            return line;
+        }
+
+        private static string RemoveUnusefulContent(string line)
         {
             if (String.IsNullOrWhiteSpace(line))
             {
