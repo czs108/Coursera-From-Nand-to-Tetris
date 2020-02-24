@@ -23,7 +23,9 @@ namespace Project11
             }
         }
 
-        private const string RGX_KEYWORD = @"(class|constructor|function|method|field|static|var|int|char|boolean|void|true|false|null|this|let|do|if|else|while|return)";
+        private const string RGX_CHECK_KEYWORD = @"(class|constructor|function|method|field|static|var|int|char|boolean|void|true|false|null|this|let|do|if|else|while|return)";
+
+        private const string RGX_KEYWORD = @"(class\s|constructor\s|function\s|method\s|field\s|static\s|var\s|int\s|char\s|boolean\s|void\s|true|false|null|this|let\s|do\s|if|else|while|return)";
 
         private const string RGX_SYMBOL = @"([{}()[\].,;+\-*/&|<>=~])";
 
@@ -180,7 +182,7 @@ namespace Project11
                 Regex.Split(content, RGX_LEXICAL_ELEMENTS, RegexOptions.IgnoreCase));
             foreach (var element in elements)
             {
-                tokens.Add(new Token(element, GetTokenType(element)));
+                tokens.Add(new Token(element.Trim(), GetTokenType(element.Trim())));
             }
 
             return tokens;
@@ -197,11 +199,11 @@ namespace Project11
         {
             Debug.Assert(!String.IsNullOrWhiteSpace(token));
 
-            if (Regex.IsMatch(token, $"^{RGX_KEYWORD}$"))
+            if (Regex.IsMatch(token, $"^{RGX_CHECK_KEYWORD}$"))
             {
                 return TokenType.Keyword;
             }
-            else if (Regex.IsMatch(token,  $"^{RGX_SYMBOL}$"))
+            else if (Regex.IsMatch(token, $"^{RGX_SYMBOL}$"))
             {
                 return TokenType.Symbol;
             }
