@@ -18,9 +18,17 @@ class Output {
 
     // Character map for displaying characters
     static Array charMaps; 
+    static int screenRow, screenCol;
+    static Array screenAddress;
 
     /** Initializes the screen, and locates the cursor at the screen's top-left. */
     function void init() {
+        // screen 16384 -- 24575
+        let screenAddress = 16384;
+
+        do Output.initMap();
+        do Output.moveCursor(0, 0);
+        return;
     }
 
     // Initializes the character map array
@@ -176,28 +184,137 @@ class Output {
     /** Moves the cursor to the j-th column of the i-th row,
      *  and erases the character displayed there. */
     function void moveCursor(int i, int j) {
+        var int address, mask, temp, index;
+
+        let screenRow = i;
+        let screenCol = j;
+
+        if ((i > 22) | (j > 63) | (i < 0) | (j < 0)) {
+            do Sys.error(4);
+            return;
+        }
+
+        let temp = j * 8;
+        let address = (i * 11 * 32) + (temp / 16);
+        let mask = temp & 15;
+
+        if (mask = 0) {
+            while (index < 11) {
+                let screenAddress[address] = screenAddress[address] & (~255);
+                let index  = index + 1;
+                let address = address + 32;
+            }
+        } else {
+            while (index < 11) {
+                let screenAddress[address] = screenAddress[address] & 255;
+                let index  = index + 1;
+                let address = address + 32;
+            }
+        }
+
+        return;
     }
 
     /** Displays the given character at the cursor location,
      *  and advances the cursor one column forward. */
     function void printChar(char c) {
+        var int temp, mask, address, index;
+        var Array map;
+
+        let temp = screenCol * 8;
+        let address = (screenRow * 11 * 32) + (temp / 16);
+        let mask = temp & 15;
+        let map = Output.getMap(c);
+
+        if (mask = 0) {
+            while (index < 11) {
+                let screenAddress[address] = screenAddress[address] | map[index];
+                let index  = index + 1;
+                let address = address + 32;
+            }
+        } else {
+            while (index < 11) {
+                let screenAddress[address] = screenAddress[address] | (map[index] * 256);
+                let index  = index + 1;
+                let address = address + 32;
+            }
+        }
+        
+        let screenCol = screenCol + 1; 
+
+        if (screenCol < 64) {
+            do Output.moveCursor(screenRow, screenCol);
+        } else {
+            let screenRow = screenRow + 1;
+            let screenCol = 0;
+            if (screenRow > 22) {
+                let screenRow = 0;
+            }
+            do Output.moveCursor(screenRow, screenCol);
+        }
+
+        return;
     }
 
     /** displays the given string starting at the cursor location,
      *  and advances the cursor appropriately. */
     function void printString(String s) {
+        var int len, i;
+
+        let len = s.length();
+        while (len > i) {
+            do Output.printChar(s.charAt(i));
+            let i = i + 1;
+        }
+
+        return;
     }
 
     /** Displays the given integer starting at the cursor location,
      *  and advances the cursor appropriately. */
     function void printInt(int i) {
+        var String s;
+        var int len, n;
+
+        let s = String.new(6);
+        do s.setInt(i);
+        let len = s.length();
+        while (len > n) {
+            do Output.printChar(s.charAt(n));
+            let n = n + 1;
+        }
+
+        do s.dispose();
+        return;
     }
 
     /** Advances the cursor to the beginning of the next line. */
     function void println() {
+        let screenRow = screenRow + 1;
+        let screenCol = 0;
+
+        if (screenRow > 22) {
+            let screenRow = 0;
+        }
+
+        do Output.moveCursor(screenRow, screenCol);
+        return;
     }
 
     /** Moves the cursor one column back. */
     function void backSpace() {
+        if ((screenCol = 0) & (screenRow = 0)) {
+            return;
+        }
+
+        let screenCol = screenCol - 1;
+
+        if (screenCol < 0) {
+            let screenCol = 63;
+            let screenRow = screenRow - 1;
+        }
+
+        do Output.moveCursor(screenRow, screenCol);
+        return;
     }
 }
