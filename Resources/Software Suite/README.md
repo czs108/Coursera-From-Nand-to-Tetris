@@ -24,7 +24,7 @@ after downloading, put the downloaded zip file in an empty directory on your com
 
 In order to use the *nand2tetris* software tools, your computer must be equipped with a Java Run-time Environment. The JRE can be downloaded freely from many sites including [this one](http://java.com/en/download/index.jsp). For best performance, download the latest available version.
 
-**Problems?** Describe your problem in our [Q&A Forum](http://tecs-questions-and-answers-forum.32033.n3.nabble.com/) and you will get help soon.
+**Problems?** Describe your problem in our [Q&A Forum](http://tecs-questions-and-answers-forum.32033.n3.nabble.com) and you will get help soon.
 
 ## About the Software
 
@@ -91,7 +91,7 @@ You can create desktop icons and use them to invoke the interactive versions of 
 
 To invoke the hardware simulator in interactive mode, type `HardwareSimulator` in the command line. For example:
 
-```powershell
+```console
 C:\...\projects\02> HardwareSimulator
 ```
 
@@ -99,7 +99,7 @@ C:\...\projects\02> HardwareSimulator
 
 To invoke the hardware simulator in batch mode, type `HardwareSimulator` in the command line. For example:
 
-```powershell
+```console
 C:\...\projects\02> HardwareSimulator ALU.tst
 ```
 
@@ -107,21 +107,21 @@ C:\...\projects\02> HardwareSimulator ALU.tst
 
 Successful test (example):
 
-```powershell
+```console
 C:\...\projects\02> HardwareSimulator ALU.tst
 End of script - Comparison ended successfully
 ```
 
 Failed test (example):
 
-```powershell
+```console
 C:\...\projects\02> HardwareSimulator ALU.tst
 Comparison failure at line 24
 ```
 
 Error in the associated HDL file:
 
-```powershell
+```console
 C:\...\projects\02> HardwareSimulator ALU.tst
 In HDL file C:\...\projects\02\ALU.hdl, Line 60, out[16]: the specified sub bus is not in the bus range: load ALU.hdl
 ```
@@ -136,13 +136,13 @@ Typing `Assembler` will start the supplied assembler in interactive mode. Typing
 
 Successful assembly (example):
 
-```powershell
+```console
 C:\...\projects\04\fill> Assembler Fill.asm Assembling "c:\...\projects\04\fill\Fill.asm"
 ```
 
 Failed assembly (example):
 
-```powershell
+```console
 C:\...\projects\04\fill> Assembler Fill.asm Assembling "C:\...\projects\04\fill\Fill.asm"
 In line 15, Expression expected
 ```
@@ -155,21 +155,21 @@ Typing `JackCompiler fileName.jack` will compile the supplied *Jack* file. Typin
 
 Compile the current directory:
 
-```powershell
+```console
 C:\...\projects\09\Reflect> JackCompiler
 Compiling "c:\...\projects\09\Reflect"
 ```
 
 Compile a single file:
 
-```powershell
+```console
 C:\...\projects\09\Reflect> JackCompiler Mirrors.jack
 Compiling "C:\...\projects\09\Reflect\Mirrors.jack"
 ```
 
 Compile the `Reflect` directory (for example):
 
-```powershell
+```console
 C:\...\projects\09> JackCompiler Reflect
 Compiling "C:\...\projects\09\Reflect"
 ```
@@ -178,12 +178,12 @@ Compiling "C:\...\projects\09\Reflect"
 
 Compares two given files ignoring white space, and reports success or failure. For example, suppose you run the *Hardware Simulator* with some test script and get a comparison failure. If you want, you can then use the *Text Comparer* to investigate the problem:
 
-```powershell
+```console
 C:\...\projects\02> HardwareSimulator ALU.tst
 Comparison failure at line 24
 ```
 
-```powershell
+```console
 C:\...\projects\02> TextComparer ALU.cmp ALU.out
 Comparison failure in line 23:
 |0101101110100000|0001111011010010|1|1|0|0|0|0|0001111011010010|0|0| |0101101110100000|0001111011010010|1|1|0|0|0|0|0001111011010010|0|1|
@@ -195,7 +195,7 @@ Comparison failure in line 23:
 
 In Windows, each batch file accepts a `/?` option that shows its intended usage. In Mac and Unix, use `-h`. For example:
 
-```powershell
+```console
 C:\...\projects\09> JackCompiler /?
 Usage:
 JackCompiler Compiles all the .jack files in the current working directory.

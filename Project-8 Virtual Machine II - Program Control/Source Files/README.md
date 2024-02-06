@@ -4,13 +4,13 @@
 
 ### Prerequisites
 
-- Install [*.NET Core SDK*](https://docs.microsoft.com/en-us/dotnet/core/install/).
+- Install [*.NET Core SDK*](https://docs.microsoft.com/en-us/dotnet/core/install).
 
 ### Building
 
 Switch to the project directory and execute the command:
 
-```powershell
+```console
 dotnet publish -c Release
 ```
 
@@ -18,13 +18,13 @@ dotnet publish -c Release
 
 To translate a `.vm` file, you must specify its name.
 
-```powershell
+```console
 VMTranslator input-file
 ```
 
 For example:
 
-```powershell
+```console
 VMTranslator SimpleAdd.vm
 ```
 
@@ -32,13 +32,13 @@ It will generate the `SimpleAdd.asm` file.
 
 You can also translate a directory containing one or more `.vm` files.
 
-```powershell
+```console
 VMTranslator input-dir
 ```
 
 For example:
 
-```powershell
+```console
 VMTranslator FibonacciSeries
 ```
 

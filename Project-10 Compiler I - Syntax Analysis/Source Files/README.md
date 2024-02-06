@@ -4,13 +4,13 @@
 
 ### Prerequisites
 
-- Install [*.NET Core SDK*](https://docs.microsoft.com/en-us/dotnet/core/install/).
+- Install [*.NET Core SDK*](https://docs.microsoft.com/en-us/dotnet/core/install).
 
 ### Building
 
 Switch to the project directory and execute the command:
 
-```powershell
+```console
 dotnet publish -c Release
 ```
 
@@ -18,13 +18,13 @@ dotnet publish -c Release
 
 To analyze a `.jack` file, you must specify its name.
 
-```powershell
+```console
 Analyzer input-file
 ```
 
 For example:
 
-```powershell
+```console
 Analyzer Main.jack
 ```
 
@@ -32,13 +32,13 @@ It will generate the `Main.xml` file.
 
 You can also analyze a directory containing one or more `.jack` files.
 
-```powershell
+```console
 Analyzer input-dir
 ```
 
 For example:
 
-```powershell
+```console
 Analyzer Square
 ```
 

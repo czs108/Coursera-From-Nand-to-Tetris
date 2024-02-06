@@ -4,13 +4,13 @@
 
 ### Prerequisites
 
-- Install [*.NET Core SDK*](https://docs.microsoft.com/en-us/dotnet/core/install/).
+- Install [*.NET Core SDK*](https://docs.microsoft.com/en-us/dotnet/core/install).
 
 ### Building
 
 Switch to the project directory and execute the command:
 
-```powershell
+```console
 dotnet publish -c Release
 ```
 
@@ -18,13 +18,13 @@ dotnet publish -c Release
 
 To translate a `.asm` file, you must specify its name.
 
-```powershell
+```console
 Assembler input-file
 ```
 
 For example:
 
-```powershell
+```console
 Assembler Add.asm
 ```
 

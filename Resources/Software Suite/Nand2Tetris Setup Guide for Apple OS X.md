@@ -8,7 +8,7 @@ Older versions of Apple OS X come with Java pre-installed, so there may be no ne
 
 To find out if Java is already installed on your Mac, start the Terminal application ("*Applications*" - "*Utilities*" - "*Terminal*"). Once the terminal window appears, type the following:
 
-```bash
+```console
 java -version
 ```
 
@@ -25,7 +25,7 @@ Double-click the `.zip` file you've downloaded from the [Nand2Tetris Software pa
 
 To run any one of the *Nand2Tetris* tools on OS X, you must use the command line. Start the Terminal application. Once the terminal window appears, type the following:
 
-```bash
+```console
 ~/Desktop/nand2tetris/tools/HardwareSimulator.sh
 ```
 
@@ -45,7 +45,7 @@ All the supplied *Nand2Tetris* software tools are started in a similar way: just
 
 To run any of these tools, open a Terminal window and type the following, replacing `COMMAND` with one of the commands listed above.
 
-```bash
+```console
 ~/Desktop/nand2tetris/tools/COMMAND
 ```
 
@@ -59,7 +59,7 @@ echo "export PATH=$PATH:~/Desktop/nand2tetris/tools" >> ~/.bash_profile ; source
 
 You can now run any of the supplied *Nand2Tetris* software tools by typing just the command. For example:
 
-```bash
+```console
 HardwareSimulator.sh
 ```
 
@@ -67,7 +67,7 @@ HardwareSimulator.sh
 
 Unlike the simulators, which feature an interactive user interface, the *Jack Compiler* is a terminal-oriented application. In order to run it, you must supply the name of the file or folder that you wish to compile. For example, suppose you wish to compile all `.jack` files stored in the folder `projects/09/Square` (that's a folder called `Square`, located in the `09` folder, which is located in the `projects` folder). To do so, open a Terminal window and type:
 
-```bash
+```console
 JackCompiler.sh ~/Desktop/nand2tetris/projects/09/Square
 ```
 
